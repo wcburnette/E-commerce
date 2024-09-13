@@ -1,24 +1,27 @@
-const express = require('express'); // Import the Express.js framework
-const routes = require('./routes'); // Import routes for API endpoints
-// Import the sequelize connection from the configuration file
-const sequelize = require('./config/connection.js');
+// Import required modules
+const express = require('express');
+const sequelize = require('./config/connection');
+const routes = require('./routes');
 
-const app = express(); // Initialize an Express application
-const PORT = process.env.PORT || 3001; // Set the port for the server, defaulting to 3001 if not in environment variables
+// Initialize the Express application
+const app = express();
+
+// Define the port to listen on, defaulting to 3001 if not specified in the environment
+const PORT = process.env.PORT || 3001;
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
-// Middleware to parse incoming URL-encoded data (typically from HTML forms)
+
+// Middleware to parse incoming URL-encoded data (e.g., form submissions)
 app.use(express.urlencoded({ extended: true }));
 
-// Use the defined routes for handling API requests
+// Use the routes defined in the 'routes' folder
 app.use(routes);
 
-// Sync sequelize models to the database, then turn on the server
+// Sync Sequelize models with the database and start the server
 sequelize.sync({ force: false }).then(() => {
-  // Start the server and listen on the specified port
-  app.listen(PORT, () => {
-    console.log(`App listening on port ${PORT}!`); // Log message indicating the server is running
-  });
+  app.listen(PORT, () => console.log(`App listening on port ${PORT}!`));
 });
+
+
 

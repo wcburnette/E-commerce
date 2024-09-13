@@ -1,10 +1,7 @@
-// Import Sequelize constructor from the 'sequelize' package
+// config/connection.js
 const Sequelize = require('sequelize');
-
-// Load environment variables from a .env file
 require('dotenv').config();
 
-// Create a new Sequelize instance, connecting to the database with credentials
 const sequelize = new Sequelize(
   process.env.DB_NAME, // Database name
   process.env.DB_USER, // Database user
@@ -17,6 +14,6 @@ const sequelize = new Sequelize(
   }
 );
 
-// Export the Sequelize instance for use in other parts of the application
 module.exports = sequelize;
+
 
