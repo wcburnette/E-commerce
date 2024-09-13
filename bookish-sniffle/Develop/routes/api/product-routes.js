@@ -1,45 +1,126 @@
-// Import required modules and models
 const router = require('express').Router();
 const { Product, Category, Tag, ProductTag } = require('../../models');
 
-// Route to get all products with associated Category and Tag data
-router.get('/', (req, res) => {
-  Product.findAll({
-    include: [
-      { model: Category, attributes: ['id', 'category_name'] },
-      { model: Tag, through: ProductTag, attributes: ['id', 'tag_name'] }
-    ]
-  })
-    .then(products => res.json(products)) // Respond with the products in JSON format
-    .catch(err => {
-      console.log(err); // Log any errors to the console
-      res.status(500).json(err); // Respond with a 500 status code and error message
+// GET all products
+router.get('/', async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      include: [
+        { model: Category, attributes: ['id', 'category_name'] },
+        { model: Tag, through: ProductTag, attributes: ['id', 'tag_name'] }
+      ]
     });
+    res.status(200).json(products);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
 });
 
-// Route to get a single product by ID with associated Category and Tag data
-router.get('/:id', (req, res) => {
-  Product.findByPk(req.params.id, {
-    include: [
-      { model: Category, attributes: ['id', 'category_name'] },
-      { model: Tag, through: ProductTag, attributes: ['id', 'tag_name'] }
-    ]
-  })
-    .then(product => {
-      if (!product) {
-        res.status(404).json({ message: 'No product found with this id!' }); // Respond with a 404 status if the product is not found
-        return;
+// GET a single product by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id, {
+      include: [
+        { model: Category, attributes: ['id', 'category_name'] },
+        { model: Tag, through: ProductTag, attributes: ['id', 'tag_name'] }
+      ]
+    });
+    if (!product) {
+      res.status(404).json({ message: 'No product found with this id!' });
+      return;
+    }
+    res.status(200).json(product);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
+// POST create a new product
+router.post('/', async (req, res) => {
+  try {
+    const product = await Product.create(req.body);
+    res.status(201).json(product);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+});
+
+// PUT update a product
+router.put('/:id', async (req, res) => {
+  try {
+    // Update product data in the Product table
+    const result = await Product.update(req.body, {
+      where: {
+        id: req.params.id
       }
-      res.json(product); // Respond with the product in JSON format
-    })
-    .catch(err => {
-      console.log(err); // Log any errors to the console
-      res.status(500).json(err); // Respond with a 500 status code and error message
     });
+
+    // If no product was found with the given id
+    if (!result[0]) {
+      return res.status(404).json({ message: 'No product found with this id!' });
+    }
+
+    // If tagIds are provided, update the product's tags
+    if (req.body.tagIds && req.body.tagIds.length) {
+      // Find all associated tags from ProductTag
+      const productTags = await ProductTag.findAll({ where: { product_id: req.params.id } });
+
+      // Get list of current tag_ids
+      const productTagIds = productTags.map(({ tag_id }) => tag_id);
+
+      // Create filtered list of new tag_ids
+      const newProductTags = req.body.tagIds
+        .filter((tag_id) => !productTagIds.includes(tag_id))
+        .map((tag_id) => ({
+          product_id: req.params.id,
+          tag_id
+        }));
+
+      // Determine which tags to remove
+      const productTagsToRemove = productTags
+        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+        .map(({ id }) => id);
+
+      // Perform tag updates
+      await Promise.all([
+        ProductTag.destroy({ where: { id: productTagsToRemove } }),
+        ProductTag.bulkCreate(newProductTags)
+      ]);
+    }
+
+    // Send success message
+    res.status(200).json({ message: 'Product and tags updated successfully' });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
 });
 
-// Export the router to be used in other files
+// DELETE a product
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await Product.destroy({
+      where: {
+        id: req.params.id
+      }
+    });
+    if (!result) {
+      res.status(404).json({ message: 'No product found with this id!' });
+      return;
+    }
+    res.status(200).json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
 module.exports = router;
+
+
 
 
 

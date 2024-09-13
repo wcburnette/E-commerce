@@ -1,104 +1,97 @@
 const router = require('express').Router();
 const { Category, Product } = require('../../models');
 
-// The `/api/categories` endpoint
-
 // GET all categories
 router.get('/', async (req, res) => {
   try {
-    // Find all categories and include their associated Products
-    const categoryData = await Category.findAll({
-      include: [{ model: Product }],
+    const categories = await Category.findAll({
+      include: [
+        { model: Product, attributes: ['id', 'product_name'] }
+      ]
     });
-    // Return the category data in JSON format with a 200 OK status
-    res.status(200).json(categoryData);
+    res.status(200).json(categories);
   } catch (err) {
-    // Return a 500 error status for server issues
+    console.log(err);
     res.status(500).json(err);
   }
 });
 
-// GET a single category by its `id`
+// GET a single category by ID
 router.get('/:id', async (req, res) => {
   try {
-    // Find one category by its `id` and include its associated Products
-    const categoryData = await Category.findByPk(req.params.id, {
-      include: [{ model: Product }],
+    const category = await Category.findByPk(req.params.id, {
+      include: [
+        { model: Product, attributes: ['id', 'product_name'] }
+      ]
     });
-
-    // If no category found, return 404 status with a message
-    if (!categoryData) {
+    if (!category) {
       res.status(404).json({ message: 'No category found with this id!' });
       return;
     }
-
-    // Return the category data in JSON format with a 200 OK status
-    res.status(200).json(categoryData);
+    res.status(200).json(category);
   } catch (err) {
-    // Return a 500 error status for server issues
+    console.log(err);
     res.status(500).json(err);
   }
 });
 
-// POST a new category
+// POST create a new category
 router.post('/', async (req, res) => {
   try {
-    // Create a new category using the request body
-    const categoryData = await Category.create(req.body);
-    // Return the new category data in JSON format with a 200 OK status
-    res.status(200).json(categoryData);
+    const newCategory = await Category.create({
+      category_name: req.body.category_name
+    });
+    res.status(201).json(newCategory);
   } catch (err) {
-    // Return a 400 error status for bad requests
+    console.log(err);
     res.status(400).json(err);
   }
 });
 
-// PUT to update a category by its `id`
+// PUT update a category
 router.put('/:id', async (req, res) => {
   try {
-    // Update the category by its `id` using the request body
-    const categoryData = await Category.update(req.body, {
+    // Perform the update operation
+    const [affectedRows] = await Category.update(req.body, {
       where: {
-        id: req.params.id,
-      },
+        id: req.params.id
+      }
     });
 
-    // If no category is updated, return 404 status with a message
-    if (!categoryData[0]) {
-      res.status(404).json({ message: 'No category found with this id!' });
-      return;
+    // Check if any rows were affected
+    if (affectedRows === 0) {
+      return res.status(404).json({ message: 'No category found with this id!' });
     }
 
-    // Return the updated category data in JSON format with a 200 OK status
-    res.status(200).json(categoryData);
+    // Respond with a success message if the update was successful
+    res.status(200).json({ message: 'Category updated successfully' });
   } catch (err) {
-    // Return a 500 error status for server issues
-    res.status(500).json(err);
+    console.log(err);
+    res.status(400).json({ message: 'An error occurred while updating the category', error: err });
   }
 });
 
-// DELETE a category by its `id`
+
+
+// DELETE a category
 router.delete('/:id', async (req, res) => {
   try {
-    // Delete the category by its `id`
-    const categoryData = await Category.destroy({
+    const deletedCategory = await Category.destroy({
       where: {
-        id: req.params.id,
-      },
+        id: req.params.id
+      }
     });
-
-    // If no category is deleted, return 404 status with a message
-    if (!categoryData) {
+    if (!deletedCategory) {
       res.status(404).json({ message: 'No category found with this id!' });
       return;
     }
-
-    // Return the deleted category data in JSON format with a 200 OK status
-    res.status(200).json(categoryData);
+    res.status(200).json({ message: 'Category deleted successfully' });
   } catch (err) {
-    // Return a 500 error status for server issues
+    console.log(err);
     res.status(500).json(err);
   }
 });
 
 module.exports = router;
+
+

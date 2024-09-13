@@ -1,46 +1,54 @@
 // Import necessary modules from Sequelize
 const { Model, DataTypes } = require('sequelize');
-// Import the Sequelize connection instance
+// Import the connection to the database
 const sequelize = require('../config/connection');
 
-// Define a new class 'ProductTag' that extends Sequelize's 'Model' class
+// Define the ProductTag model, extending Sequelize's Model class
 class ProductTag extends Model {}
 
-// Initialize the ProductTag model with its schema and configuration
+// Initialize the ProductTag model with its fields and configuration
 ProductTag.init(
   {
-    // Define the 'id' column as the primary key
+    // Define the 'id' field as an integer that cannot be null, is the primary key, and auto-increments
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true, // Auto-increment for each new ProductTag
+      autoIncrement: true
     },
-    // Define the 'product_id' column to reference the 'product' model's 'id'
+    // Define the 'product_id' field as an integer that references the 'id' field in the 'product' table
     product_id: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'product',
-        key: 'id',
-      },
+        model: 'product', // References the 'product' model
+        key: 'id'         // Refers to the 'id' field in 'product'
+      }
     },
-    // Define the 'tag_id' column to reference the 'tag' model's 'id'
+    // Define the 'tag_id' field as an integer that references the 'id' field in the 'tag' table
     tag_id: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'tag',
-        key: 'id',
-      },
-    },
+        model: 'tag',     // References the 'tag' model
+        key: 'id'         // Refers to the 'id' field in 'tag'
+      }
+    }
   },
   {
-    sequelize, // Pass the Sequelize connection instance
-    timestamps: false, // Disable automatic timestamps
-    freezeTableName: true, // Prevent Sequelize from pluralizing table name
-    underscored: true, // Use snake_case column names
-    modelName: 'product_tag', // Name of the model in the database
+    // Provide the Sequelize instance to connect this model to the database
+    sequelize,
+    // Set the model name to 'product_tag'
+    modelName: 'product_tag',
+    // Prevent Sequelize from pluralizing the table name
+    freezeTableName: true,
+    // Use snake_case for automatically generated fields
+    underscored: true,
+    // Disable automatic timestamps (createdAt, updatedAt)
+    timestamps: false
   }
 );
 
-// Export the ProductTag model for use in other files
+// Export the ProductTag model for use in other parts of the application
 module.exports = ProductTag;
+
+
+

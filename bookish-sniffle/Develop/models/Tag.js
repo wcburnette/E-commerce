@@ -1,48 +1,46 @@
 // Import necessary modules from Sequelize
 const { Model, DataTypes } = require('sequelize');
-// Import the Sequelize connection instance
+// Import the connection to the database
 const sequelize = require('../config/connection');
-// Import related models
-const Product = require('./product');
-const ProductTag = require('./product-tag');
 
-// Define a new class 'Tag' that extends Sequelize's 'Model' class
+// Define the Tag model, which extends Sequelize's Model class
 class Tag extends Model {}
 
-// Initialize the Tag model with its schema and configuration
+// Initialize the Tag model with its fields and configuration
 Tag.init(
   {
-    // Define the 'id' column as the primary key
+    // Define the 'id' field as an integer that cannot be null, is the primary key, and auto-increments
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true, // Auto-increment for each new tag
+      autoIncrement: true
     },
-    // Define the 'tag_name' column as a string and not allowing null values
+    // Define the 'tag_name' field as a string that cannot be null
     tag_name: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
+      allowNull: false
+    }
   },
   {
-    sequelize, // Pass the Sequelize connection instance
-    timestamps: false, // Disable automatic timestamps
-    freezeTableName: true, // Prevent Sequelize from pluralizing table name
-    underscored: true, // Use snake_case column names
-    modelName: 'tag', // Name of the model in the database
+    // Provide the Sequelize instance to connect this model to the database
+    sequelize,
+    // Set the model name to 'tag'
+    modelName: 'tag',
+    // Prevent Sequelize from pluralizing the table name
+    freezeTableName: true,
+    // Use snake_case for automatically generated fields
+    underscored: true,
+    // Disable automatic timestamps (createdAt, updatedAt)
+    timestamps: false
   }
 );
 
-// Define associations
-// A tag belongs to many products (through the ProductTag model)
-Tag.belongsToMany(Product, {
-  through: ProductTag,
-  foreignKey: 'tag_id',
-});
-
-// Export the Tag model for use in other files
+// Export the Tag model for use in other parts of the application
 module.exports = Tag;
+
+
+
 
 
 

@@ -1,7 +1,8 @@
-// Import required modules
 const express = require('express');
 const sequelize = require('./config/connection');
-const routes = require('./routes');
+const productRoutes = require('./routes/api/product-routes');
+const tagRoutes = require('./routes/api/tag-routes');
+const categoryRoutes = require('./routes/api/category-routes');
 
 // Initialize the Express application
 const app = express();
@@ -15,10 +16,12 @@ app.use(express.json());
 // Middleware to parse incoming URL-encoded data (e.g., form submissions)
 app.use(express.urlencoded({ extended: true }));
 
-// Use the routes defined in the 'routes' folder
-app.use(routes);
+// Use the routes
+app.use('/api/products', productRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/categories', categoryRoutes);
 
-// Sync Sequelize models with the database and start the server
+// Sync the database and start the server
 sequelize.sync({ force: false }).then(() => {
   app.listen(PORT, () => console.log(`App listening on port ${PORT}!`));
 });
